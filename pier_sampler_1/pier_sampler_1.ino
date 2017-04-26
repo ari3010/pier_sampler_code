@@ -1,18 +1,20 @@
-//assign pins for solenoids A,B,C,D
+//ARDUINO PIN ASSIGNMENT FOR SOLENOID CONTROLS
+//assign digital pins for solenoids A,B,C,D
 int sol_B = 2; 
 int sol_C = 4;  
 int sol_D = 3; 
 int sol_A = 12; 
-//initialize timer
+
+//initialize timer for intervals
 unsigned long time_since_last_reset =0;
 
-//set normal normal op length in ms
+//set normal normal operation length in ms
 int interval_one = 5000;
 
-//set sampling length in ms
+//set sampling operation length in ms
 int interval_two = 8000;
 
-//set fixative length in ms
+//set fixative operation length in ms
 int interval_three = 4000;
 
 //debugging logic(irrelevant for operation)
@@ -22,32 +24,36 @@ boolean check_fix = true;
 
 
 void setup() {
+  
+//Initialize serial monitor for data display compatibility if required
 Serial.begin(1200);
 delay(2000);
 
-//set solenoids as outputs to system
+//INITIALIZE PINS AS OUTPUTS
+//set non sampling solenoids as outputs to system
 pinMode(sol_A, OUTPUT);
 pinMode(sol_B, OUTPUT);
 pinMode(sol_D, OUTPUT);
 pinMode(sol_C, OUTPUT);
 
-//loop through and initialize solenoid pns
-for(int solX_Pin = 5; solX_Pin < 12; solX_Pin++)
+//loop through and initialize solenoid pins 
+for(int solX_Pin = 5; solX_Pin < 12; solX_Pin++)//solenoid pins are assigned from pin 5 to 11 
 {
-  pinMode(solX_Pin, OUTPUT);
+  pinMode(solX_Pin, OUTPUT);  //pins set as output 
 }
 }
 
 
-//operation loop
+//OPERATION LOOP
 void loop() {
 
 //loop to next solenoid at the end of each cycle  
 for(int solX_Pin = 5; solX_Pin < 12 ; solX_Pin++){
 
+//Check for looping operation of sampling solenoids   
 Serial.println(solX_Pin);
 
-//set up timing
+//set up timing 
 //get last reset time from millis function
 time_since_last_reset = millis();
 
@@ -89,7 +95,7 @@ Serial.println("fixative");
 
 //---------------------------- MISC----------------------------
  
- //debugging
+//DEBUGGING FUNCTIONS
 // if(check_normal)
  //{
  
