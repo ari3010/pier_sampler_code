@@ -1,21 +1,32 @@
-//ARDUINO PIN ASSIGNMENT FOR SOLENOID CONTROLS
+/******************************************************************************************
+Code for pier water sampler, controlled by ARDUINO MEGA
+Scripps Institute of Oceanography
+Bowman Lab
+******************************************************************************************/
+
+//-------------------------------------------------------------------------------------------------------------------------------------//
+/*ARDUINO PIN ASSIGNMENT FOR SOLENOID CONTROLS:
+In the following block, the control pins for the solenoids are declared. Digital pins on the arduino are used.*/
+//-------------------------------------------------------------------------------------------------------------------------------------//
+//******************************************************************************************//
 //assign digital pins for solenoids A,B,C,D
-int sol_B = 2; 
-int sol_C = 4;  
-int sol_D = 3; 
-int sol_A = 12; 
+int sol_A = 12; //assign digital pin number 12 for solenoid A
+int sol_B = 2; //assign digital pin number 2 for solenoid B
+int sol_C = 4; //assign digital pin number 4 for solenoid C
+int sol_D = 3; //assign digital pin number 3for solenoid D
+//******************************************************************************************//
 
-//initialize timer for intervals
-unsigned long time_since_last_reset =0;
-
-//set normal normal operation length in ms
-int interval_one = 5000;
-
-//set sampling operation length in ms
-int interval_two = 8000;
-
-//set fixative operation length in ms
-int interval_three = 4000;
+//-------------------------------------------------------------------------------------------------------------------------------------//
+/*Initialize and set up time keeping mechanism:
+In the following block the mechanism for specifying and maintaining time intervals is initialized. 
+This is done by first initializing the timer to 0, followed by specifying user-inputted intervals for normal operation, sampling and fixative operation.*/
+//-------------------------------------------------------------------------------------------------------------------------------------//
+//******************************************************************************************//
+unsigned long time_since_last_reset =0; //initialize timer to 0
+int normal_op = 5000;//set normal normal operation length in milliseconds
+int sampling = 7000;//set sampling operation length in milliseconds
+int fixative_op = 9000;//set fixative operation length in milliseconds
+//******************************************************************************************//
 
 //debugging logic(irrelevant for operation)
 boolean check_normal =true;
@@ -23,11 +34,15 @@ boolean check_sampling = true;
 boolean check_fix = true;
 
 
+//-------------------------------------------------------------------------------------------------------------------------------------//
+/*The void setup block is used to initialize code that only needs to be ran once. 
+For this purpose, all solenoid control pins are set as OUTPUTS to the system.
+Furthermore, a serial monitor is initialized to display the state of operation that the system is in.*/
+//-------------------------------------------------------------------------------------------------------------------------------------//
+//******************************************************************************************//
 void setup() {
-  
-//Initialize serial monitor for data display compatibility if required
-Serial.begin(1200);
-delay(2000);
+Serial.begin(1200);//initialize serial monitor
+delay(2000);// add delay before starting system
 
 //INITIALIZE PINS AS OUTPUTS
 //set non sampling solenoids as outputs to system
@@ -36,76 +51,93 @@ pinMode(sol_B, OUTPUT);
 pinMode(sol_D, OUTPUT);
 pinMode(sol_C, OUTPUT);
 
-//loop through and initialize solenoid pins 
+//A for loop is used to assign pins 5-11 of the arduino and set them as outputs for the 7 sampling solenoids.
 for(int solX_Pin = 5; solX_Pin < 12; solX_Pin++)//solenoid pins are assigned from pin 5 to 11 
-{
-  pinMode(solX_Pin, OUTPUT);  //pins set as output 
+  {
+pinMode(solX_Pin, OUTPUT);  //pins set as output 
+  }
+            }
+//******************************************************************************************//
+
+//-------------------------------------------------------------------------------------------------------------------------------------//
+/*The void loop block runs the code in it continously and is used to specify the states of the solenoids in the various operation modes.
+//--------------------------------------------------------------------------------------------------------------------------------------//
+******************************************************************************************/
+void loop() {  
+//A for loop is initialized to makes sure that the sampling solenoids are looped through every cycle.
+for(int solX_Pin = 5; solX_Pin < 12 ; solX_Pin++){  
+
+  /*The millis function is one specified in the arduino library and that returns the number of milliseconds elapsed since it was previously called.
+The time since reset is initialized here*/
+ time_since_last_reset = millis();
+//******************************************************************************************//
+
+//-------------------------------------------------------------------------------------------------------------------------------------//
+//Normal Operation Block:
+//In the following block solenoids A,B and D are turned on and every other solenoid is turned off for a user specified time interval.
+//-------------------------------------------------------------------------------------------------------------------------------------//
+//******************************************************************************************//
+while((millis()-time_since_last_reset)<normal_op){  //a while loop is used to set the condition of running in normal operation until the user specified time interval has elapsed.
+digitalWrite(sol_C, LOW);    //solenoid C is turned off
+digitalWrite(sol_A, HIGH);  //solenoid A is turned on
+digitalWrite(sol_B, HIGH);  //solenoid B is turned on
+digitalWrite(sol_D, HIGH);  //solenoid D is turned on
+digitalWrite(solX_Pin, LOW); //the sampling pins are turned off
+Serial.println("normal");  //The state "normal" is shown on the serial monitor.
 }
-}
+//******************************************************************************************//
 
 
-//OPERATION LOOP
-void loop() {
 
-//loop to next solenoid at the end of each cycle  
-for(int solX_Pin = 5; solX_Pin < 12 ; solX_Pin++){
-
-//Check for looping operation of sampling solenoids   
-Serial.println(solX_Pin);
-
-//set up timing 
-//get last reset time from millis function
+//The time is checked again to make sure that the normal operation interval has passed and initialized for sampling.
 time_since_last_reset = millis();
 
-//normal operation
-//while time elapsed is less than interval set, begin normal operation
-while((millis()-time_since_last_reset)<interval_one){
- digitalWrite(sol_C, LOW);
- digitalWrite(sol_A, HIGH);
- digitalWrite(sol_B, HIGH);
- digitalWrite(sol_D, HIGH);
- Serial.println("normal");  //print normal to serial monitor
+//-------------------------------------------------------------------------------------------------------------------------------------//
+//Sampling Operation Block:
+//In the following block solenoids B and D are turned off and all the inflow is passed through the sampling solenoid 
+//until the user defined sampling interval has passed.
+//-------------------------------------------------------------------------------------------------------------------------------------//
+//******************************************************************************************//
+while((millis()-time_since_last_reset)<sampling){
+digitalWrite(solX_Pin, HIGH);  //sampling solenoid is turned on
+digitalWrite(sol_B, LOW);  //solenoid B is turned off
+digitalWrite(sol_D, LOW);  //solenoid D is turned off
+Serial.println("sampling");   //The state "sampling" is shown on the serial monitor.
 }
-//exit loop after set time has elapsed
+//******************************************************************************************//
 
-//check time again
+
+//The time is checked again to make sure that the normal operation interval has passed and initialized for fixative operation.
 time_since_last_reset = millis();
 
-//while time elapsed is less than sampling interval, enter sampling mode
-while((millis()-time_since_last_reset)<interval_two){
- digitalWrite(solX_Pin, HIGH);
- digitalWrite(sol_B, LOW);
- digitalWrite(sol_D, LOW);
- Serial.println("sampling");   //print sampling to serial monitor
-
-}
-
-
-time_since_last_reset = millis();
+//-------------------------------------------------------------------------------------------------------------------------------------//
+//Fizative Operation Block:
+//In the following block all solenoids except sampling and C are turned off for a user defined time interval.
+//-------------------------------------------------------------------------------------------------------------------------------------//
+//******************************************************************************************//
 //enter fixative operation
-while((millis()-time_since_last_reset)<interval_three){
- digitalWrite(sol_A, LOW);
-  digitalWrite(sol_C, HIGH);
-digitalWrite(solX_Pin, LOW);
-Serial.println("fixative");
+while((millis()-time_since_last_reset)<fixative_op){
+digitalWrite(solX_Pin, HIGH);  //sampling solenoid is maintained on
+digitalWrite(sol_A, LOW);  //inflow valve is turned off
+digitalWrite(sol_C, HIGH);  //fixative valve C is opened.
+Serial.println("fixative"); //The state "fixative" is shown on the serial monitor
 }
-}
-}
+//******************************************************************************************//
 
+}
+}
 
 //---------------------------- MISC----------------------------
  
 //DEBUGGING FUNCTIONS
 // if(check_normal)
  //{
- 
-  //check A
+//check A
 // int check1_A = digitalRead(sol_A);
- //Serial.println(check1_A);
- //Serial.println("Sol_A during normal:");
- 
- 
- //check B
+//Serial.println(check1_A);
+//Serial.println("Sol_A during normal:");
+  
+  //check B
  /* int check1_B = digitalRead(sol_B);
  Serial.println(check1_B);
  Serial.println("Sol_B during normal:");
