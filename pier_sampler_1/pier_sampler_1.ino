@@ -2,6 +2,7 @@
 Code for pier water sampler, controlled by ARDUINO MEGA
 Scripps Institute of Oceanography
 Bowman Lab
+Note: Refer to operation diagram for solenoid orientation
 ******************************************************************************************/
 
 //-------------------------------------------------------------------------------------------------------------------------------------//
@@ -24,8 +25,8 @@ This is done by first initializing the timer to 0, followed by specifying user-i
 //******************************************************************************************//
 unsigned long time_since_last_reset =0; //initialize timer to 0
 int normal_op = 5000;//set normal normal operation length in milliseconds
-int sampling = 7000;//set sampling operation length in milliseconds
-int fixative_op = 9000;//set fixative operation length in milliseconds
+int sampling = 5000;//set sampling operation length in milliseconds
+int fixative_op = 5000;//set fixative operation length in milliseconds
 //******************************************************************************************//
 
 //debugging logic(irrelevant for operation)
@@ -42,7 +43,7 @@ Furthermore, a serial monitor is initialized to display the state of operation t
 //******************************************************************************************//
 void setup() {
 Serial.begin(1200);//initialize serial monitor
-delay(2000);// add delay before starting system
+delay(4000);// add delay before starting system
 
 //INITIALIZE PINS AS OUTPUTS
 //set non sampling solenoids as outputs to system
@@ -82,7 +83,7 @@ digitalWrite(sol_C, LOW);    //solenoid C is turned off
 digitalWrite(sol_A, HIGH);  //solenoid A is turned on
 digitalWrite(sol_B, HIGH);  //solenoid B is turned on
 digitalWrite(sol_D, HIGH);  //solenoid D is turned on
-digitalWrite(solX_Pin, LOW); //the sampling pins are turned off
+//digitalWrite(solX_Pin, LOW); //the sampling pins are turned off
 Serial.println("normal");  //The state "normal" is shown on the serial monitor.
 }
 //******************************************************************************************//
@@ -117,13 +118,16 @@ time_since_last_reset = millis();
 //******************************************************************************************//
 //enter fixative operation
 while((millis()-time_since_last_reset)<fixative_op){
-digitalWrite(solX_Pin, HIGH);  //sampling solenoid is maintained on
+//digitalWrite(solX_Pin, HIGH);  //sampling solenoid is maintained on
 digitalWrite(sol_A, LOW);  //inflow valve is turned off
 digitalWrite(sol_C, HIGH);  //fixative valve C is opened.
 Serial.println("fixative"); //The state "fixative" is shown on the serial monitor
 }
 //******************************************************************************************//
-
+digitalWrite(solX_Pin, LOW);
+//delay(120000);
+//time_since_last_reset = millis();
+//interval 
 }
 }
 
